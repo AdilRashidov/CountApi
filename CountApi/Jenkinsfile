@@ -1,45 +1,35 @@
-pipeline {
+pipeline{
     agent any
-    stages {
-        stage('build') {
-            steps {
-                bat ' kek'
-            }       
+    
+    environment {
+        dotnet ='C:\\Program Files (x86)\\dotnet\\'
         }
-
-        stage('deploy'){
-        	steps{
-        		retry(3) {
-                    bat 'echo flakey-deploy'
-                }
-
-                timeout(time: 3, unit: 'MINUTES') {
-                    bat 'echo health-check'
-        	}
-        }
-        stage('Test') {
-            steps {
-                bat 'echo "Fail!"; exit 1'
-            }
-        }
+        
+    triggers {
+        pollSCM 'H * * * *'
     }
-}
-    post {
-        always {
-            echo 'This will always run'
-        }
-        success {
-            echo 'This will run only if successful'
-        }
-        failure {
-            echo 'This will run only if failed'
-        }
-        unstable {
-            echo 'This will run only if the run was marked as unstable'
-        }
-        changed {
-            echo 'This will run only if the state of the Pipeline has changed'
-            echo 'For example, if the Pipeline was previously failing but is now successful'
-        }
+
+    stages{
+        stage('Checkout') {
+            steps {
+                git branch: 'master',
+                credentialsId: 'id.rsa', url: 'ssh://git@github.com:AdilRashidov/CountApi.git', 
+     }
+ }
+        stage('Restore packages'){
+            steps{
+                bat "dotnet restore C:\\Users\\dell\\source\repos\\CountApi\\CountApi\\CountApi.csproj"
+     }   
+  }
+        stage('Clean'){
+            steps{
+                bat "dotnet clean C:\\Users\\dell\\source\repos\\CountApi\\CountApi\\CountApi.csproj"
+     }
+   }
+        stage('Build'){
+            steps{
+                bat "dotnet build C:\\Users\\dell\\source\repos\\CountApi\\CountApi\\CountApi.csproj --configuration Release"
     }
+ }
+ }
 }
